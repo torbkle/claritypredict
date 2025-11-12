@@ -32,11 +32,12 @@ If you don't have your own data, you can:
 
     if st.button("🔄 Load and run example data"):
         example_df = pd.DataFrame({
-            "CRP": [4.8],
-            "Albumin": [39.2],
-            "Creatinine": [88],
-            "BMI": [23.7]
+            "CRP": [4.8, 6.1, 3.2, 5.5, 7.0],
+            "Albumin": [39.2, 37.5, 40.1, 38.0, 36.8],
+            "Creatinine": [88, 95, 82, 90, 100],
+            "BMI": [23.7, 27.1, 22.5, 25.0, 29.3]
         })
+
         st.success("Example data loaded and sent to prediction module.")
         run_prediction(example_df)
 
