@@ -1,30 +1,27 @@
 # ClarityPredict
 
-**Explainable Machine Learning for Biomarker Prediction**
+ClarityPredict is a lightweight, explainable health prediction app built with Streamlit and scikit-learn. It uses basic biomarkers (CRP, Albumin, Creatinine, BMI) to generate binary predictions and visualize feature importance using SHAP.
 
-ClarityPredict is a prototype for clinically relevant machine learning, designed to predict biomarker levels based on laboratory data while providing transparent, interpretable explanations. The project combines predictive modeling with explainable AI (XAI) to support decision-making in healthcare and diagnostics.
+## 🔍 Purpose
 
----
+The goal of ClarityPredict is to demonstrate how interpretable machine learning can support diagnostic decision-making. The app is designed for educational and prototyping purposes, with a focus on transparency, modularity, and clean UI.
 
-## 🚀 Project Goals
+## ⚙️ Features
 
-- Predict biomarker levels (e.g. CRP, Cystatin C) from simulated lab data  
-- Provide interpretable explanations using SHAP  
-- Deliver a user-friendly interface via Streamlit  
-- Demonstrate responsible AI for clinical support  
-- Serve as a portfolio project for health tech roles  
+- Upload CSV files with biomarker data
+- Scaled logistic regression prediction
+- SHAP-based feature importance (bar + beeswarm)
+- Clean layout with branding and footer modules
+- Modular codebase for easy extension
 
----
+## 📦 Tech stack
 
-## 🧠 Technologies Used
-
-- Python 3.10+  
-- Pandas, NumPy  
-- Scikit-learn, XGBoost  
-- SHAP (Explainable AI)  
-- Streamlit (GUI)  
-- Matplotlib, Seaborn  
-
+- Python
+- Streamlit
+- scikit-learn
+- SHAP
+- pandas
+- matplotlib
 ---
 
 ## 📚 Documentation
