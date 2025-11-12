@@ -6,6 +6,7 @@ from pathlib import Path
 from branding import show_logo, apply_custom_style
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Toggle for midlertidige og eksperimentelle seksjoner
 dev_mode = True
@@ -16,53 +17,34 @@ st.set_page_config(page_title="ClarityPredict", layout="centered")
 apply_custom_style()
 show_logo()
 
-# --- Midlertidig testseksjon (plassert tidlig for nye brukere) ---
+# --- Mobilvennlig testseksjon ---
 if dev_mode:
     st.markdown("---")
-    st.markdown("### Test the app")
+    st.markdown("### 🧪 Test ClarityPredict instantly")
 
     st.markdown(
         """
-If you don't have your own data, you can:
-
-- [Download example CSV](https://github.com/torbkle/claritypredict/raw/main/data/example.csv)
-- Or generate a test row below
+This feature is designed for mobile users and others who don't have a CSV file ready.  
+Click the button to test the app using pre-filled example data.
 """
     )
 
     if st.button("🔄 Load and run example data"):
-        example_df = pd.DataFrame({
-            "CRP": [4.8, 6.1, 3.2, 5.5, 7.0],
-            "Albumin": [39.2, 37.5, 40.1, 38.0, 36.8],
-            "Creatinine": [88, 95, 82, 90, 100],
-            "BMI": [23.7, 27.1, 22.5, 25.0, 29.3]
+        np.random.seed(42)
+        st.session_state.example_df = pd.DataFrame({
+            "CRP": np.random.normal(loc=5.0, scale=2.0, size=50).round(2),
+            "Albumin": np.random.normal(loc=38.0, scale=1.5, size=50).round(1),
+            "Creatinine": np.random.normal(loc=90, scale=10, size=50).round(0),
+            "BMI": np.random.normal(loc=25.0, scale=3.0, size=50).round(1)
         })
-
-        st.success("Example data loaded and sent to prediction module.")
-        run_prediction(example_df)
-
-    st.markdown(
-        """
-    This feature is designed for mobile users and others who don't have a CSV file ready.  
-    Click the button to test the app using pre-filled example data.
-    """
-    )
-
-    st.markdown(
-        """
-**Required CSV columns:**
-
-- `CRP`
-- `Albumin`
-- `Creatinine`
-- `BMI`
-
-Make sure your file includes these headers and numerical values.
-"""
-    )
+        st.success("Example data loaded! Scroll down to see predictions.")
 
 # --- Filopplasting og prediksjon ---
 df = upload_data()
+
+# Bruk eksempeldata hvis tilgjengelig
+if "example_df" in st.session_state:
+    df = st.session_state.example_df
 
 if df is not None:
     st.info("Data is ready for prediction module.")
