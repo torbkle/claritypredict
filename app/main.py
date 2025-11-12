@@ -6,11 +6,30 @@ from pathlib import Path
 from branding import show_logo, apply_custom_style
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
 
 # Toggle for midlertidige og eksperimentelle seksjoner
 dev_mode = True
 
+# Eksempeldata-funksjon
+def load_example_data():
+    import numpy as np
+
+    np.random.seed(42)
+    example_df = pd.DataFrame({
+        "CRP": np.random.normal(loc=5.0, scale=2.0, size=50).round(2),
+        "Albumin": np.random.normal(loc=38.0, scale=1.5, size=50).round(1),
+        "Creatinine": np.random.normal(loc=90, scale=10, size=50).round(0),
+        "BMI": np.random.normal(loc=25.0, scale=3.0, size=50).round(1)
+    })
+
+    st.session_state.example_df = example_df
+    st.success("Example data loaded! Scroll down to see predictions.")
+    st.dataframe(example_df)
+
+    csv = example_df.to_csv(index=False).encode("utf-8")
+    st.download_button("📥 Download example data as CSV", data=csv, file_name="example_data.csv", mime="text/csv")
+
+# App config
 st.set_page_config(page_title="ClarityPredict", layout="centered")
 
 # Header
@@ -30,14 +49,7 @@ Click the button to test the app using pre-filled example data.
     )
 
     if st.button("🔄 Load and run example data"):
-        np.random.seed(42)
-        st.session_state.example_df = pd.DataFrame({
-            "CRP": np.random.normal(loc=5.0, scale=2.0, size=50).round(2),
-            "Albumin": np.random.normal(loc=38.0, scale=1.5, size=50).round(1),
-            "Creatinine": np.random.normal(loc=90, scale=10, size=50).round(0),
-            "BMI": np.random.normal(loc=25.0, scale=3.0, size=50).round(1)
-        })
-        st.success("Example data loaded! Scroll down to see predictions.")
+        load_example_data()
 
 # --- Filopplasting og prediksjon ---
 df = upload_data()
