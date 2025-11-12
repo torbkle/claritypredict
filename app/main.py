@@ -16,7 +16,44 @@ st.set_page_config(page_title="ClarityPredict", layout="centered")
 apply_custom_style()
 show_logo()
 
-# Filopplasting og prediksjon
+# --- Midlertidig testseksjon (plassert tidlig for nye brukere) ---
+if dev_mode:
+    st.markdown("---")
+    st.markdown("### 🧪 Test the app")
+
+    st.markdown(
+        """
+If you don't have your own data, you can:
+
+- [Download example CSV](https://github.com/torbkle/claritypredict/raw/main/data/example.csv)
+- Or generate a test row below
+"""
+    )
+
+    if st.button("Generate example data"):
+        example_df = pd.DataFrame({
+            "CRP": [4.8],
+            "Albumin": [39.2],
+            "Creatinine": [88],
+            "BMI": [23.7]
+        })
+        st.dataframe(example_df)
+        st.markdown("⬆️ You can copy this format into your own CSV file.")
+
+    st.markdown(
+        """
+**Required CSV columns:**
+
+- `CRP`
+- `Albumin`
+- `Creatinine`
+- `BMI`
+
+Make sure your file includes these headers and numerical values.
+"""
+    )
+
+# --- Filopplasting og prediksjon ---
 df = upload_data()
 
 if df is not None:
@@ -54,42 +91,5 @@ if df is not None:
         st.markdown("### 💡 Did you know?")
         st.info("CRP is a marker of inflammation and can rise dramatically during infection or trauma.")
 
-# Midlertidig testseksjon
-if dev_mode:
-    st.markdown("---")
-    st.markdown("### 🧪 Test the app")
-
-    st.markdown(
-        """
-If you don't have your own data, you can:
-
-- [Download example CSV](https://github.com/torbkle/claritypredict/raw/main/data/example.csv)
-- Or generate a test row below
-"""
-    )
-
-    if st.button("Generate example data"):
-        example_df = pd.DataFrame({
-            "CRP": [4.8],
-            "Albumin": [39.2],
-            "Creatinine": [88],
-            "BMI": [23.7]
-        })
-        st.dataframe(example_df)
-        st.markdown("⬆️ You can copy this format into your own CSV file.")
-
-    st.markdown(
-        """
-**Required CSV columns:**
-
-- `CRP`
-- `Albumin`
-- `Creatinine`
-- `BMI`
-
-Make sure your file includes these headers and numerical values.
-"""
-    )
-
-# Footer
+# --- Footer ---
 show_footer()
