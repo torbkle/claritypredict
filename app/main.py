@@ -1,3 +1,4 @@
+import sys
 import streamlit as st
 from footer import show_footer
 from upload import upload_data
