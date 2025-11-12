@@ -19,7 +19,7 @@ show_logo()
 # --- Midlertidig testseksjon (plassert tidlig for nye brukere) ---
 if dev_mode:
     st.markdown("---")
-    st.markdown("### 🧪 Test the app")
+    st.markdown("### Test the app")
 
     st.markdown(
         """
