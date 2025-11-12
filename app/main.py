@@ -30,15 +30,22 @@ If you don't have your own data, you can:
 """
     )
 
-    if st.button("Generate example data"):
+    if st.button("🔄 Load and run example data"):
         example_df = pd.DataFrame({
             "CRP": [4.8],
             "Albumin": [39.2],
             "Creatinine": [88],
             "BMI": [23.7]
         })
-        st.dataframe(example_df)
-        st.markdown("⬆️ You can copy this format into your own CSV file.")
+        st.success("Example data loaded and sent to prediction module.")
+        run_prediction(example_df)
+
+    st.markdown(
+        """
+    This feature is designed for mobile users and others who don't have a CSV file ready.  
+    Click the button to test the app using pre-filled example data.
+    """
+    )
 
     st.markdown(
         """
