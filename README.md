@@ -30,6 +30,28 @@ The goal of ClarityPredict is to demonstrate how interpretable machine learning 
 - `docs/model_report.docx`  
 - `docs/pitch_claritypredict.pptx`  
 
+--- 
+
+## Quick Test Mode (No Upload Needed)
+
+ClarityPredict now includes a mobile-friendly test mode for users who don’t have a CSV file ready.
+
+✅ How it works
+Click the “Load and run example data” button on the front page
+
+The app will automatically generate realistic test data (50 synthetic rows)
+
+Predictions and visualizations will run instantly – no file upload required
+
+## 📱 Designed for mobile users
+This feature is especially helpful for:
+
+First-time visitors
+
+Mobile users who can’t easily download/upload files
+
+Quick demos and testing without setup
+
 ---
 
 ## 👤 Author

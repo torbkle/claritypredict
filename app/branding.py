@@ -1,5 +1,6 @@
 import streamlit as st
 from pathlib import Path
+from PIL import UnidentifiedImageError
 
 # Logo path
 LOGO_PATH = Path(__file__).parent.parent / "assets" / "logo_brand.png"
@@ -11,7 +12,15 @@ TEXT_COLOR = "#333333"
 FONT_FAMILY = "sans-serif"
 
 def show_logo():
-    st.image(str(LOGO_PATH), width=280)
+    try:
+        if LOGO_PATH.exists():
+            st.image(str(LOGO_PATH), width=280)
+        else:
+            st.warning(f"⚠️ Logo not found at: {LOGO_PATH}")
+            st.markdown("## ClarityPredict")
+    except UnidentifiedImageError:
+        st.warning("⚠️ Logo file could not be read. Please check the image format.")
+        st.markdown("## ClarityPredict")
 
 def apply_custom_style():
     st.markdown(
