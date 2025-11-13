@@ -1,6 +1,7 @@
 import streamlit as st
 from pathlib import Path
 from PIL import UnidentifiedImageError
+from datetime import date  # ✅ Ny import for versjonsdato
 
 # --- Fargepalett ---
 PRIMARY_COLOR = "#4A90E2"       # Branding-blå
@@ -62,10 +63,10 @@ def show_logo():
         <h2 style='margin-top: 4px; margin-bottom: 6px;'>
         Welcome to ClarityPredict – a prototype for explainable biomarker prediction
         </h2>
-        </div>
         """,
         unsafe_allow_html=True
     )
+    st.caption(f"🔄 Version: {date.today()} – latest update includes biomarker profile and comparison")  # ✅ Versjonsindikator
 
 # --- Stilfunksjoner ---
 def styled_header(text, level=3):
