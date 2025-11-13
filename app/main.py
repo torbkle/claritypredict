@@ -112,5 +112,8 @@ if df is not None:
         # Randomly facts
         show_icon("bulb", "💡 Did you know?", size=28)
         show_random_fact()
+
+
+
 # --- Footer ---
 show_footer()
