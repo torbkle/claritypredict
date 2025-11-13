@@ -24,6 +24,9 @@ def load_example_data():
     df = generate_synthetic_data(n_samples=100, seed=42)
     st.session_state.example_df = df
     st.success("✅ Example data loaded! Scroll down to see predictions.")
+    st.warning("🔍 Debug: Columns in example data:")
+    st.write(df.columns.tolist())
+    st.write(df.head())
 
 
 
