@@ -4,7 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e27ca965-4f9c-431a-b389-b9984736c126" name="Changes" comment="" />
+    <list default="true" id="e27ca965-4f9c-431a-b389-b9984736c126" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/app/components.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/facts.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/icons.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/branding.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/branding.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/prediction.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/prediction.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/upload.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/upload.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/generate_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/generate_data.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -20,9 +30,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 7
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="35NJDc3zvNSilJimS60kosEWO78" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -35,6 +45,7 @@
   "keyToString": {
     "Python.main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "main",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -46,6 +57,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\torbk\PycharmProjects\PythonProject\claritypredict\assets" />
       <recent name="C:\Users\torbk\PycharmProjects\PythonProject\claritypredict\app" />
     </key>
   </component>
@@ -66,6 +78,7 @@
       <option name="presentableId" value="Default" />
       <updated>1762944478298</updated>
       <workItem from="1762944479369" duration="13997000" />
+      <workItem from="1763024453199" duration="9599000" />
     </task>
     <servers />
   </component>

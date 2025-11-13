@@ -5,10 +5,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import shap
 import matplotlib.pyplot as plt
-
+from icons import show_icon
 def run_prediction(df: pd.DataFrame):
-    st.subheader("🔍 Run Prediction")
-
+    st.markdown("---")
+    show_icon("search", "Run Prediction", size=32)
     required_columns = ["CRP", "Creatinine", "Albumin", "BMI"]
     missing = [col for col in required_columns if col not in df.columns]
 
@@ -42,13 +42,14 @@ def run_prediction(df: pd.DataFrame):
     st.dataframe(df_result)
 
     # 📊 SHAP explanations with correct feature names
-    st.subheader("📊 SHAP Feature Importance")
+    st.markdown("---")
+    show_icon("chart", "SHAP Feature Importance", size=32)
     st.markdown("These plots show which biomarkers most influence the model's predictions.")
 
     # Create SHAP values with column names
     explainer = shap.Explainer(model, X_train_scaled, feature_names=X.columns)
     shap_values = explainer(X_test_scaled)
-
+    st.markdown("---")
     # 🔹 Bar plot – average impact per feature
     st.markdown("**Average impact per biomarker:**")
     fig_bar, ax_bar = plt.subplots()

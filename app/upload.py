@@ -1,10 +1,12 @@
 import streamlit as st
 import pandas as pd
+from icons import show_icon
 
 REQUIRED_COLUMNS = ["CRP", "Albumin", "Creatinine", "BMI"]
 
 def upload_data():
-    st.markdown("### 📤 Upload your CSV file")
+
+    show_icon("upload", "Upload your CSV file", size=32)
     uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
 
     if uploaded_file is not None:

@@ -10,8 +10,8 @@ def show_footer():
 
 
     with col2:
-        st.markdown("[🌐 GitHub Repository](https://github.com/yourusername/claritypredict)")
-        st.markdown("[📄 MIT License](https://github.com/yourusername/claritypredict/blob/main/LICENSE)")
+        st.markdown("[🌐 GitHub Repository](https://github.com/torbkle/claritypredict)")
+        st.markdown("[📄 MIT License](https://github.com/torbkle/claritypredict/blob/main/LICENSE)")
 
     license_path = Path("LICENSE")
     if license_path.exists():
