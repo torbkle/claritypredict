@@ -1,10 +1,12 @@
-#scripts_path = Path(__file__).parent.parent / "scripts"
-#sys.path.append(str(scripts_path))
-#from generate_data import generate_synthetic_data
-#from app.generate_data import generate_synthetic_data
+import sys
+from pathlib import Path
+scripts_path = Path(__file__).parent.parent / "scripts"
+sys.path.append(str(scripts_path))
+
 from generate_data import generate_synthetic_data
 
 import streamlit as st
+
 from icons import show_icon
 from footer import show_footer
 from upload import upload_data
