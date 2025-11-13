@@ -6,7 +6,7 @@ def show_footer():
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        st.caption("Created by Torbjørn Kleiven --- 🔄 Versjon: 2025-11-13")
+        st.caption("Created by Torbjørn Kleiven --- 🔄 Versjon: 2025-11-13 - redeployed")
 
 
     with col2:
