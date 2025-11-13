@@ -1,16 +1,15 @@
-import sys
-from pathlib import Path
-scripts_path = Path(__file__).parent.parent / "scripts"
-sys.path.append(str(scripts_path))
-
+#scripts_path = Path(__file__).parent.parent / "scripts"
+#sys.path.append(str(scripts_path))
+#from generate_data import generate_synthetic_data
+#from app.generate_data import generate_synthetic_data
 from generate_data import generate_synthetic_data
+
 import streamlit as st
 from icons import show_icon
 from footer import show_footer
 from upload import upload_data
 from prediction import run_prediction
 from branding import show_logo, apply_custom_style
-import pandas as pd
 import matplotlib.pyplot as plt
 from facts import show_random_fact
 from components import show_biomarker_profile, compare_profiles
