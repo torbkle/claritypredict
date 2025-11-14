@@ -49,3 +49,4 @@ def generate_synthetic_data(n_samples=100, seed=42):
         print("✅ Synthetic data saved to data/example.csv")
 
     return df
+

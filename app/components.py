@@ -1,5 +1,5 @@
 import streamlit as st
-from icons import show_icon
+from app.icons import show_icon
 
 # Normalområder for referanse
 normal_ranges = {

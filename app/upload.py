@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from icons import show_icon
+from app.icons import show_icon
 
 REQUIRED_COLUMNS = ["CRP", "Albumin", "Creatinine", "BMI"]
 

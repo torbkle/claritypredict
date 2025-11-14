@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import shap
 import matplotlib.pyplot as plt
-from icons import show_icon
+from app.icons import show_icon
 def run_prediction(df: pd.DataFrame):
     st.markdown("---")
     show_icon("search", "Run Prediction", size=32)
