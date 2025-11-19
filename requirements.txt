@@ -1,0 +1,11 @@
+pandas
+numpy
+scikit-learn
+xgboost
+shap
+matplotlib
+seaborn
+streamlit
+fastapi          # i tilfelle  API
+supabase         # antakelig database
+joblib           # for lagring av modeller
