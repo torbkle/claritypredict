@@ -37,9 +37,24 @@ def load_example_data():
 # App config
 st.set_page_config(page_title="ClarityPredict", layout="centered")
 
-# Header
+# Header med logo og info-knapp
 apply_custom_style()
 show_logo()
+
+# Legg til knapp til høyre
+st.markdown(
+    """
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div></div>
+        <div>
+            <a href="#info" style="text-decoration:none; font-weight:bold; color:#0066cc;">
+                ℹ️ What is ClarityPredict
+            </a>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # --- Mobilvennlig testseksjon ---
 if dev_mode:
@@ -112,6 +127,44 @@ if df is not None:
         show_icon("bulb", " Did you know?", size=28)
         show_random_fact()
 
+# --- Info-seksjon ---
+st.markdown("---")
+st.markdown('<a id="info"></a>', unsafe_allow_html=True)
+
+st.header("What is ClarityPredict?")
+st.write("""
+ClarityPredict is a prototype for explainable biomarker prediction. 
+It combines advanced machine learning with clear, interactive visualizations to help clinicians, researchers, 
+and health-tech innovators make sense of complex patient data.
+
+Key features include:
+- **Data exploration**: Upload or generate biomarker datasets and instantly explore distributions, correlations, and summary statistics.
+- **Predictive modeling**: Run logistic regression or random forest models with transparent performance metrics (ROC, precision-recall, confusion matrix).
+- **Explainability**: Inspect individual predictions with SHAP force plots, beeswarm plots, and dependence plots to understand how biomarkers influence outcomes.
+- **Patient-level insights**: Compare biomarker profiles across patients and highlight key differences in clinical markers.
+- **Accessibility**: Designed to bridge the gap between complex algorithms and practical decision-making, making advanced analytics trustworthy and easy to use.
+
+ClarityPredict is not a diagnostic tool, but a demonstration of how explainable AI can support 
+decision-making in healthcare and research.
+""")
+
+st.write("👉 [Les mer på norsk](#norsk)")
+st.header("Hva er ClarityPredict?")
+st.write("""
+ClarityPredict er en prototype for forklarbar biomarkørprediksjon. 
+Den kombinerer avansert maskinlæring med tydelige, interaktive visualiseringer for å hjelpe klinikere, forskere 
+og helse-teknologiutviklere med å forstå komplekse pasientdata.
+
+Hovedfunksjoner:
+- **Datautforskning**: Last opp eller generer biomarkørdatasett og utforsk fordelinger, korrelasjoner og oppsummerende statistikk.
+- **Prediktiv modellering**: Kjør logistisk regresjon eller random forest-modeller med transparente ytelsesmål (ROC, precision-recall, confusion matrix).
+- **Forklarbarhet**: Undersøk individuelle prediksjoner med SHAP force plots, beeswarm plots og dependence plots for å forstå hvordan biomarkører påvirker resultatene.
+- **Pasientnivå-innsikt**: Sammenlign biomarkørprofiler mellom pasienter og fremhev viktige forskjeller i kliniske markører.
+- **Tilgjengelighet**: Bygget for å bygge bro mellom komplekse algoritmer og praktiske beslutninger, slik at avansert analyse blir pålitelig og enkel å bruke.
+
+ClarityPredict er ikke et diagnostisk verktøy, men en demonstrasjon av hvordan forklarbar AI kan støtte 
+beslutningstaking i helsevesen og forskning.
+""")
 
 
 # --- Footer ---
