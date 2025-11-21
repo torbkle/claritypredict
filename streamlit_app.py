@@ -13,19 +13,18 @@ from app.explore import explore_data
 # Toggle for midlertidige og eksperimentelle seksjoner
 dev_mode = True
 
+# Init state
+if "show_info" not in st.session_state:
+    st.session_state.show_info = False
+
 # Eksempeldata-funksjon
 def load_example_data():
     df = generate_synthetic_data(n_samples=100, seed=42)
     st.session_state.example_df = df
+    st.session_state.hide_info = True   # 👈 Skjul info-seksjonen
     st.success("✅ Example data loaded! Scroll down to see predictions.")
-    #st.warning("🔍 Debug: Columns in example data:")
-    #st.write(df.columns.tolist())
-    #st.write(df.head())
-
-
 
     # Vis data
-
     show_icon("search", "Preview of synthetic biomarker data", size=32)
     st.dataframe(df)
 
@@ -42,19 +41,31 @@ apply_custom_style()
 show_logo()
 
 # Legg til knapp til høyre
-st.markdown(
-    """
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <div></div>
-        <div>
-            <a href="#info" style="text-decoration:none; font-weight:bold; color:#0066cc;">
-                ℹ️ What is ClarityPredict
-            </a>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# Legg til knapp til høyre
+col1, col2 = st.columns([3,1])
+with col2:
+    # Tilpass stil for denne knappen
+    st.markdown(
+        """
+        <style>
+        div.stButton > button:first-child {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background-color: #f0f4f8;
+            color: #0066cc;
+        }
+        div.stButton > button:first-child:hover {
+            background-color: #e6f0ff;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    if st.button("ℹ️ What is ClarityPredict"):
+        st.session_state.show_info = True
+
+
 
 # --- Mobilvennlig testseksjon ---
 if dev_mode:
@@ -87,8 +98,6 @@ if df is not None:
         st.markdown("---")
         show_icon("chart", "Biomarker overview", size=28)
 
-        # Vis gjennomsnitt for utvalgte markører
-        st.markdown("---")
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Avg CRP", f"{df['CRP'].mean():.2f} mg/L")
         col2.metric("Avg Cystatin C", f"{df['Cystatin_C'].mean():.2f} mg/L")
@@ -105,7 +114,6 @@ if df is not None:
         ax.set_ylabel("Frequency")
         st.pyplot(fig)
 
-
         # --- Sammenlign to rader ---
         st.markdown("---")
         show_icon("search", "Compare two cases", size=28)
@@ -120,20 +128,19 @@ if df is not None:
         show_biomarker_profile(df.iloc[selected_idx])
         compare_profiles(df.iloc[idx1], df.iloc[idx2])
 
-
         # --- Fakta ---
         st.markdown("---")
-        # Randomly facts
         show_icon("bulb", " Did you know?", size=28)
         show_random_fact()
 
 # --- Info-seksjon ---
-st.markdown("---")
-st.markdown('<a id="info"></a>', unsafe_allow_html=True)
+if st.session_state.get("show_info", False):
+    st.markdown("---")
 
-st.header("What is ClarityPredict?")
-st.write("""
-ClarityPredict is a prototype for explainable biomarker prediction. 
+
+    st.header("What is ClarityPredict?")
+    st.write("""
+ClarityPredict© is a prototype for explainable biomarker prediction. 
 It combines advanced machine learning with clear, interactive visualizations to help clinicians, researchers, 
 and health-tech innovators make sense of complex patient data.
 
@@ -144,14 +151,20 @@ Key features include:
 - **Patient-level insights**: Compare biomarker profiles across patients and highlight key differences in clinical markers.
 - **Accessibility**: Designed to bridge the gap between complex algorithms and practical decision-making, making advanced analytics trustworthy and easy to use.
 
-ClarityPredict is not a diagnostic tool, but a demonstration of how explainable AI can support 
+ClarityPredict© is not a diagnostic tool, but a demonstration of how explainable AI can support 
 decision-making in healthcare and research.
 """)
 
-st.write("👉 [Les mer på norsk](#norsk)")
-st.header("Hva er ClarityPredict?")
-st.write("""
-ClarityPredict er en prototype for forklarbar biomarkørprediksjon. 
+    st.write("👉 [Les på norsk](#norsk)")
+    st.header("Hva er ClarityPredict?")
+    st.write("""
+Jeg har valgt å kalle produktet ClarityPredict© fordi navnet uttrykker kjernen i det jeg ønsker å oppnå: klarhet 
+i komplekse data og tydelige prediksjoner som kan forklares. Clarity står for innsikt og transparens – at resultatene 
+ikke bare skal være tall, men forståelige forklaringer. Predict viser at løsningen handler om å forutsi utfall basert 
+på biomarkører. Sammen gir navnet et løfte om både presisjon og forklarbarhet: en prediksjon som kan stoles på fordi den 
+kan forklares.
+
+ClarityPredict© er en prototype for forklarbar biomarkørprediksjon. 
 Den kombinerer avansert maskinlæring med tydelige, interaktive visualiseringer for å hjelpe klinikere, forskere 
 og helse-teknologiutviklere med å forstå komplekse pasientdata.
 
@@ -162,10 +175,15 @@ Hovedfunksjoner:
 - **Pasientnivå-innsikt**: Sammenlign biomarkørprofiler mellom pasienter og fremhev viktige forskjeller i kliniske markører.
 - **Tilgjengelighet**: Bygget for å bygge bro mellom komplekse algoritmer og praktiske beslutninger, slik at avansert analyse blir pålitelig og enkel å bruke.
 
-ClarityPredict er ikke et diagnostisk verktøy, men en demonstrasjon av hvordan forklarbar AI kan støtte 
+ClarityPredict© er ikke et diagnostisk verktøy, men en demonstrasjon av hvordan forklarbar AI kan støtte 
 beslutningstaking i helsevesen og forskning.
 """)
 
+    # Reset-knapp
+    if st.button("Hide info"):
+        st.session_state.show_info = False
 
 # --- Footer ---
 show_footer()
+
+

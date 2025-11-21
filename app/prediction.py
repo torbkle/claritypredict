@@ -1,17 +1,23 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report, confusion_matrix
-import shap
 import matplotlib.pyplot as plt
+import shap
 import streamlit.components.v1 as components
 
 from app.icons import show_icon
-from app.eda import run_eda   # 👈 riktig import
+from app.eda import run_eda
+from models.train import split_data, train_logistic_regression, train_random_forest
+from models.predict import safe_predict
+from models.explainer import get_explainer, get_shap_values
+
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    roc_curve,
+    roc_auc_score,
+    precision_recall_curve,
+    average_precision_score
+)
 
 def run_prediction(df: pd.DataFrame):
     st.markdown("---")
@@ -22,65 +28,51 @@ def run_prediction(df: pd.DataFrame):
 
     if missing:
         st.error(f"Missing required columns: {missing}")
-        st.markdown("### 📋 Columns found in uploaded file:")
         st.write(list(df.columns))
         return
 
-    # Dummy target for testing
+    # Dummy target
     df["target"] = (df["CRP"] > 5).astype(int)
 
-    # Modellflyt
-    X = df[required_columns]
-    y = df["target"]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Split data
+    X_train, X_test, y_train, y_test = split_data(df, required_columns)
 
     # Modellvalg
     model_choice = st.radio("Select model:", ["Logistic Regression", "Random Forest"])
 
     if model_choice == "Logistic Regression":
-        scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
-        model = LogisticRegression()
-        model.fit(X_train_scaled, y_train)
-        predictions = model.predict(X_test_scaled)
-        X_used_train, X_used_test = X_train_scaled, X_test_scaled
-        explainer = shap.LinearExplainer(model, X_train_scaled, feature_names=X.columns)
-        shap_values = explainer(X_test_scaled)
+        model, scaler = train_logistic_regression(X_train, y_train)
+        predictions = safe_predict(model, X_test, scaler=scaler)
+        X_test_final = scaler.transform(X_test)
+        explainer = get_explainer(model, scaler.transform(X_train), model_type="lr", feature_names=X_train.columns)
+        shap_values = get_shap_values(explainer, X_test_final, model_type="lr")
     else:
-        model = RandomForestClassifier(n_estimators=200, random_state=42)
-        model.fit(X_train, y_train)
-        predictions = model.predict(X_test)
-        X_used_train, X_used_test = X_train, X_test
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer(X_test, check_additivity=False)
+        model = train_random_forest(X_train, y_train)
+        predictions = safe_predict(model, X_test)
+        X_test_final = X_test
+        explainer = get_explainer(model, X_train, model_type="rf")
+        shap_values = get_shap_values(explainer, X_test_final, model_type="rf")
 
     # Resultater
     df_result = X_test.copy()
     df_result["Prediction"] = predictions
     df_result["True Label"] = y_test.values
-
     st.success("✅ Prediction completed!")
     st.dataframe(df_result)
 
-    # Evaluering
+    # 📊 Classification Report
     st.markdown("### 📊 Classification Report")
     st.text(classification_report(y_test, predictions))
 
+    # 🧩 Confusion Matrix
     st.markdown("### 🧩 Confusion Matrix")
     cm = confusion_matrix(y_test, predictions)
     st.write(pd.DataFrame(cm, index=["True 0","True 1"], columns=["Pred 0","Pred 1"]))
 
-    # 🔹 ROC Curve & AUC
+    # 📈 ROC Curve & AUC
     st.markdown("### 📈 ROC Curve & AUC")
     try:
-        from sklearn.metrics import roc_curve, roc_auc_score
-
-        if model_choice == "Logistic Regression":
-            y_score = model.predict_proba(X_test_scaled)[:, 1]
-        else:
-            y_score = model.predict_proba(X_test)[:, 1]
-
+        y_score = model.predict_proba(X_test_final)[:, 1]
         fpr, tpr, thresholds = roc_curve(y_test, y_score)
         auc_value = roc_auc_score(y_test, y_score)
 
@@ -97,16 +89,9 @@ def run_prediction(df: pd.DataFrame):
     except Exception as e:
         st.error(f"ROC Curve failed: {e}")
 
-    # 🔹 Precision-Recall Curve
+    # 📉 Precision-Recall Curve
     st.markdown("### 📉 Precision-Recall Curve")
     try:
-        from sklearn.metrics import precision_recall_curve, average_precision_score
-
-        if model_choice == "Logistic Regression":
-            y_score = model.predict_proba(X_test_scaled)[:, 1]
-        else:
-            y_score = model.predict_proba(X_test)[:, 1]
-
         precision, recall, thresholds = precision_recall_curve(y_test, y_score)
         avg_precision = average_precision_score(y_test, y_score)
 
@@ -122,92 +107,50 @@ def run_prediction(df: pd.DataFrame):
     except Exception as e:
         st.error(f"Precision-Recall Curve failed: {e}")
 
-
-    # Force plot
+    # 🧑‍⚕️ Force plot
     st.markdown("### 🧑‍⚕️ Inspect Individual Prediction (force plot)")
-    idx = st.number_input("Select test case index", min_value=0, max_value=len(X_used_test)-1, value=0)
+    idx = st.number_input("Select test case index", min_value=0, max_value=len(X_test_final)-1, value=0)
     st.write("True label:", y_test.iloc[idx])
     st.write("Predicted:", predictions[idx])
 
     try:
-        shap_values_to_use = shap_values[..., 1] if shap_values.values.ndim == 3 else shap_values
+        shap_values_to_use = shap_values[..., 1] if hasattr(shap_values, "values") and shap_values.values.ndim == 3 else shap_values
         viz = shap.plots.force(shap_values_to_use[idx])
         html = f"<head>{shap.getjs()}</head><body>{viz.html()}</body>"
         components.html(html, height=300)
     except Exception as e:
         st.error(f"Force plot failed: {e}")
 
-    # Bar plot
-    st.markdown("### 📊 Average impact per biomarker")
+    # 📊 SHAP Summary Plot
+    st.markdown("### 📊 SHAP Summary Plot")
     try:
-        fig_bar, ax_bar = plt.subplots()
-        if shap_values.values.ndim == 3:
-            shap.summary_plot(shap_values.values[:, :, 1], X_test, plot_type="bar", show=False)
-        else:
-            shap.summary_plot(shap_values.values, X_test, plot_type="bar", show=False)
-        st.pyplot(fig_bar)
+        shap.summary_plot(
+            shap_values.values if hasattr(shap_values, "values") else shap_values,
+            X_test,
+            plot_type="dot",
+            show=False
+        )
+        plt.tight_layout()
+        st.pyplot(plt.gcf())
     except Exception as e:
-        st.error(f"Bar plot failed: {e}")
+        st.error(f"SHAP summary failed: {e}")
 
-    # Beeswarm plot
-    st.markdown("### 🐝 Individual impact per patient (beeswarm)")
-    try:
-        fig_swarm, ax_swarm = plt.subplots()
-        if shap_values.values.ndim == 3:
-            shap.summary_plot(shap_values.values[:, :, 1], X_test, plot_type="dot", show=False)
-        else:
-            shap.summary_plot(shap_values.values, X_test, plot_type="dot", show=False)
-        st.pyplot(fig_swarm)
-    except Exception as e:
-        st.error(f"Beeswarm plot failed: {e}")
-
-    # Dependence plot
-    st.markdown("### 📈 SHAP Dependence Plot")
-    try:
-        feature_name = st.selectbox("Select biomarker for dependence plot", X.columns)
-        fig_dep, ax_dep = plt.subplots()
-        if shap_values.values.ndim == 3:
-            shap.dependence_plot(feature_name, shap_values.values[:, :, 1], X_test, ax=ax_dep, show=False)
-        else:
-            shap.dependence_plot(feature_name, shap_values.values, X_test, ax=ax_dep, show=False)
-        st.pyplot(fig_dep)
-    except Exception as e:
-        st.error(f"Dependence plot failed: {e}")
-
-    # Sammenligning av to pasienter
-    st.markdown("### 👥 Compare Two Patients")
-    idx1 = st.number_input("Select first patient index", min_value=0, max_value=len(X_used_test)-1, value=0)
-    idx2 = st.number_input("Select second patient index", min_value=0, max_value=len(X_used_test)-1, value=1)
-    st.write("Patient 1 - True:", y_test.iloc[idx1], "Predicted:", predictions[idx1])
-    st.write("Patient 2 - True:", y_test.iloc[idx2], "Predicted:", predictions[idx2])
-    try:
-        shap_values_to_use = shap_values[..., 1] if shap_values.values.ndim == 3 else shap_values
-        viz1 = shap.plots.force(shap_values_to_use[idx1])
-        viz2 = shap.plots.force(shap_values_to_use[idx2])
-        html = f"""
-        <head>{shap.getjs()}</head>
-        <body>
-        <h4>Patient {idx1}</h4>{viz1.html()}
-        <h4>Patient {idx2}</h4>{viz2.html()}
-        </body>
-        """
-        components.html(html, height=600, scrolling=True)
-    except Exception as e:
-        st.error(f"Comparison failed: {e}")
-
-    # Modell-sammenligning
+    # ⚖️ Model Comparison
     st.markdown("### ⚖️ Model Comparison (Logistic Regression vs Random Forest)")
     try:
-        # Logistic Regression explainer
+        # Logistic Regression
+        from sklearn.preprocessing import StandardScaler
+        from sklearn.linear_model import LogisticRegression
         scaler_lr = StandardScaler()
         X_train_lr = scaler_lr.fit_transform(X_train)
         X_test_lr = scaler_lr.transform(X_test)
         model_lr = LogisticRegression()
         model_lr.fit(X_train_lr, y_train)
-        explainer_lr = shap.LinearExplainer(model_lr, X_train_lr, feature_names=X.columns)
+        explainer_lr = shap.LinearExplainer(model_lr, X_train_lr, feature_names=X_train.columns)
         shap_values_lr = explainer_lr(X_test_lr)
 
-        # Random Forest explainer
+        # Random Forest
+        from sklearn.ensemble import RandomForestClassifier
         model_rf = RandomForestClassifier(n_estimators=200, random_state=42)
         model_rf.fit(X_train, y_train)
         explainer_rf = shap.TreeExplainer(model_rf)

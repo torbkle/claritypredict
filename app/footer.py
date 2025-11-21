@@ -3,17 +3,21 @@ from pathlib import Path
 
 def show_footer():
     st.markdown("---")
-    col1, col2 = st.columns([1, 2])
-
-    with col1:
-        st.caption("Created by Torbjørn Kleiven --- 🔄 Versjon: 1.02")
-
-
-    with col2:
-        st.markdown("[🌐 GitHub Repository](https://github.com/torbkle/claritypredict)")
-        st.markdown("[📄 MIT License](https://github.com/torbkle/claritypredict/blob/main/LICENSE)")
-
-    license_path = Path("LICENSE")
-    if license_path.exists():
-        with st.expander("📄 View MIT License"):
-            st.code(license_path.read_text(), language="text")
+    st.markdown(
+        """
+        <div style="text-align:center; font-size:14px; color:gray; margin-top:20px;">
+            <p><strong>ClarityPredict©</strong> – Prototype for explainable biomarker prediction</p>
+            <p>Developed by <strong>Torbjørn Kleiven</strong>, MSc AI/ML</p>
+            <p>
+                Moss / Oslo, Norway <br>
+                <a href="mailto:tk@infera.no">tk@infera.no</a> | 
+                <a href="https://github.com/torbkle" target="_blank">GitHub</a> | 
+                <a href="https://github.com/torbkle/claritypredict/blob/main/LICENSE" target="_blank">📄 MIT License</a>
+            </p>
+            <p style="font-size:12px; color:darkgray;">
+                © 2025 Torbjørn Kleiven – For demonstration and research purposes only.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
