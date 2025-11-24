@@ -40,11 +40,10 @@ st.set_page_config(page_title="ClarityPredict", layout="centered")
 apply_custom_style()
 show_logo()
 
-# Legg til knapp til høyre
+
 # Legg til knapp til høyre
 col1, col2 = st.columns([3,1])
 with col2:
-    # Tilpass stil for denne knappen
     st.markdown(
         """
         <style>
@@ -64,7 +63,15 @@ with col2:
     )
     if st.button("ℹ️ What is ClarityPredict"):
         st.session_state.show_info = True
-
+        # Scroll til info-seksjonen
+        st.markdown(
+            """
+            <script>
+            window.location.href = "#info";
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
 
 
 # --- Mobilvennlig testseksjon ---
@@ -136,7 +143,8 @@ if df is not None:
 # --- Info-seksjon ---
 if st.session_state.get("show_info", False):
     st.markdown("---")
-
+    # Sett ID/anker for scroll
+    st.markdown('<a id="info"></a>', unsafe_allow_html=True)
 
     st.header("What is ClarityPredict?")
     st.write("""
@@ -179,10 +187,17 @@ ClarityPredict© er ikke et diagnostisk verktøy, men en demonstrasjon av hvorda
 beslutningstaking i helsevesen og forskning.
 """)
 
-    # Reset-knapp
+    # Reset-knapp med scroll til toppen
     if st.button("Hide info"):
         st.session_state.show_info = False
-
+        st.markdown(
+            """
+            <script>
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
 # --- Footer ---
 show_footer()
 
