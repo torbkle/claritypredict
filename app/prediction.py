@@ -34,24 +34,37 @@ def run_prediction(df: pd.DataFrame):
     # Dummy target
     df["target"] = (df["CRP"] > 5).astype(int)
 
+    # 📊 Diagnostikk: vis klassefordeling
+    st.write("Class distribution before split:", df["target"].value_counts().to_dict())
+
     # Split data
     X_train, X_test, y_train, y_test = split_data(df, required_columns)
+
+    # --- Nytt: sjekk antall klasser ---
+    if len(y_train.unique()) < 2:
+        st.error("⚠️ Training data contains only one class. Cannot train model.")
+        st.write("Class distribution:", y_train.value_counts().to_dict())
+        return
 
     # Modellvalg
     model_choice = st.radio("Select model:", ["Logistic Regression", "Random Forest"])
 
-    if model_choice == "Logistic Regression":
-        model, scaler = train_logistic_regression(X_train, y_train)
-        predictions = safe_predict(model, X_test, scaler=scaler)
-        X_test_final = scaler.transform(X_test)
-        explainer = get_explainer(model, scaler.transform(X_train), model_type="lr", feature_names=X_train.columns)
-        shap_values = get_shap_values(explainer, X_test_final, model_type="lr")
-    else:
-        model = train_random_forest(X_train, y_train)
-        predictions = safe_predict(model, X_test)
-        X_test_final = X_test
-        explainer = get_explainer(model, X_train, model_type="rf")
-        shap_values = get_shap_values(explainer, X_test_final, model_type="rf")
+    try:
+        if model_choice == "Logistic Regression":
+            model, scaler = train_logistic_regression(X_train, y_train)
+            predictions = safe_predict(model, X_test, scaler=scaler)
+            X_test_final = scaler.transform(X_test)
+            explainer = get_explainer(model, scaler.transform(X_train), model_type="lr", feature_names=X_train.columns)
+            shap_values = get_shap_values(explainer, X_test_final, model_type="lr")
+        else:
+            model = train_random_forest(X_train, y_train)
+            predictions = safe_predict(model, X_test)
+            X_test_final = X_test
+            explainer = get_explainer(model, X_train, model_type="rf")
+            shap_values = get_shap_values(explainer, X_test_final, model_type="rf")
+    except Exception as e:
+        st.error(f"Model training failed: {e}")
+        return
 
     # Resultater
     df_result = X_test.copy()
@@ -61,13 +74,19 @@ def run_prediction(df: pd.DataFrame):
     st.dataframe(df_result)
 
     # 📊 Classification Report
-    st.markdown("### 📊 Classification Report")
-    st.text(classification_report(y_test, predictions))
+    show_icon("chart", "Classification Report", size=32)
+    try:
+        st.text(classification_report(y_test, predictions))
+    except Exception as e:
+        st.error(f"Classification report failed: {e}")
 
     # 🧩 Confusion Matrix
     st.markdown("### 🧩 Confusion Matrix")
-    cm = confusion_matrix(y_test, predictions)
-    st.write(pd.DataFrame(cm, index=["True 0","True 1"], columns=["Pred 0","Pred 1"]))
+    try:
+        cm = confusion_matrix(y_test, predictions)
+        st.write(pd.DataFrame(cm, index=["True 0","True 1"], columns=["Pred 0","Pred 1"]))
+    except Exception as e:
+        st.error(f"Confusion matrix failed: {e}")
 
     # 📈 ROC Curve & AUC
     st.markdown("### 📈 ROC Curve & AUC")
@@ -107,83 +126,46 @@ def run_prediction(df: pd.DataFrame):
     except Exception as e:
         st.error(f"Precision-Recall Curve failed: {e}")
 
-    # 🧑‍⚕️ Force plot
+    # 🧑‍⚕️ Inspect Individual Prediction
     st.markdown("### 🧑‍⚕️ Inspect Individual Prediction (force plot)")
-    idx = st.number_input("Select test case index", min_value=0, max_value=len(X_test_final)-1, value=0)
-    st.write("True label:", y_test.iloc[idx])
-    st.write("Predicted:", predictions[idx])
+    if len(X_test_final) > 0:
+        idx = st.number_input("Select test case index", min_value=0, max_value=len(X_test_final)-1, value=0)
+        st.write("True label:", y_test.iloc[idx])
+        st.write("Predicted:", predictions[idx])
 
-    try:
-        shap_values_to_use = shap_values[..., 1] if hasattr(shap_values, "values") and shap_values.values.ndim == 3 else shap_values
-        viz = shap.plots.force(shap_values_to_use[idx])
-        html = f"<head>{shap.getjs()}</head><body>{viz.html()}</body>"
-        components.html(html, height=300)
-    except Exception as e:
-        st.error(f"Force plot failed: {e}")
+        try:
+            shap_values_to_use = shap_values[..., 1] if hasattr(shap_values, "values") and shap_values.values.ndim == 3 else shap_values
+            viz = shap.plots.force(shap_values_to_use[idx])
+            html = f"<head>{shap.getjs()}</head><body>{viz.html()}</body>"
+            components.html(html, height=300)
+        except Exception as e:
+            st.error(f"Force plot failed: {e}")
 
-    # 📊 SHAP Summary Plot
-    st.markdown("### 📊 SHAP Summary Plot")
+    # TODO: Juster SHAP-plot størrelse og stil ved sluttpuss
+    show_icon("chart", "SHAP Summary Plot", size=32)
     try:
-        shap.summary_plot(
-            shap_values.values if hasattr(shap_values, "values") else shap_values,
-            X_test,
-            plot_type="dot",
-            show=False
-        )
-        plt.tight_layout()
-        st.pyplot(plt.gcf())
+        st.write(f"SHAP summary for model: {model.__class__.__name__}")
+
+        if model.__class__.__name__ == "RandomForestClassifier":
+            shap.summary_plot(
+                shap_values.values if hasattr(shap_values, "values") else shap_values,
+                X_test,
+                plot_type="bar",
+                max_display=10,
+                show=False
+            )
+            fig = plt.gcf()  # hent figuren SHAP faktisk tegnet på
+            fig.set_size_inches(8, 4)  # juster størrelse
+            st.pyplot(fig)
+        else:
+            shap.summary_plot(
+                shap_values.values if hasattr(shap_values, "values") else shap_values,
+                X_test,
+                plot_type="dot",
+                show=False
+            )
+            fig = plt.gcf()
+            fig.set_size_inches(10, 6)
+            st.pyplot(fig)
     except Exception as e:
         st.error(f"SHAP summary failed: {e}")
-
-    # ⚖️ Model Comparison
-    st.markdown("### ⚖️ Model Comparison (Logistic Regression vs Random Forest)")
-    try:
-        # Logistic Regression
-        from sklearn.preprocessing import StandardScaler
-        from sklearn.linear_model import LogisticRegression
-        scaler_lr = StandardScaler()
-        X_train_lr = scaler_lr.fit_transform(X_train)
-        X_test_lr = scaler_lr.transform(X_test)
-        model_lr = LogisticRegression()
-        model_lr.fit(X_train_lr, y_train)
-        explainer_lr = shap.LinearExplainer(model_lr, X_train_lr, feature_names=X_train.columns)
-        shap_values_lr = explainer_lr(X_test_lr)
-
-        # Random Forest
-        from sklearn.ensemble import RandomForestClassifier
-        model_rf = RandomForestClassifier(n_estimators=200, random_state=42)
-        model_rf.fit(X_train, y_train)
-        explainer_rf = shap.TreeExplainer(model_rf)
-        shap_values_rf = explainer_rf(X_test, check_additivity=False)
-
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("**Logistic Regression**")
-            fig_lr, ax_lr = plt.subplots()
-            shap.summary_plot(shap_values_lr.values, X_test, plot_type="bar", show=False)
-            st.pyplot(fig_lr)
-        with col2:
-            st.markdown("**Random Forest**")
-            fig_rf, ax_rf = plt.subplots()
-            shap.summary_plot(shap_values_rf.values[:, :, 1], X_test, plot_type="bar", show=False)
-            st.pyplot(fig_rf)
-    except Exception as e:
-        st.error(f"Model comparison failed: {e}")
-
-
-# --- Main app entry point ---
-def main():
-    st.title("Gentian Predictor / ClarityPredict")
-
-    uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
-
-        mode = st.radio("Choose mode:", ["Prediction", "EDA"])
-        if mode == "Prediction":
-            run_prediction(df)
-        else:
-            run_eda(df, required_columns=["CRP", "Creatinine", "Albumin", "BMI"])
-
-if __name__ == "__main__":
-    main()

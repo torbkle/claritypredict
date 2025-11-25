@@ -1,204 +1,191 @@
 import streamlit as st
-from app.icons import show_icon
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from app.branding import show_logo, apply_custom_style
 from app.footer import show_footer
 from app.upload import upload_data
 from app.prediction import run_prediction
-from app.branding import show_logo, apply_custom_style
-import matplotlib.pyplot as plt
-from app.facts import show_random_fact
-from app.components import show_biomarker_profile, compare_profiles
-from scripts.generate_data import generate_synthetic_data
 from app.explore import explore_data
-
-# Toggle for midlertidige og eksperimentelle seksjoner
-dev_mode = True
-
-# Init state
-if "show_info" not in st.session_state:
-    st.session_state.show_info = False
-
-# Eksempeldata-funksjon
-def load_example_data():
-    df = generate_synthetic_data(n_samples=100, seed=42)
-    st.session_state.example_df = df
-    st.session_state.hide_info = True   # 👈 Skjul info-seksjonen
-    st.success("✅ Example data loaded! Scroll down to see predictions.")
-
-    # Vis data
-    show_icon("search", "Preview of synthetic biomarker data", size=32)
-    st.dataframe(df)
-
-    # Nedlastbar CSV
-    csv = df.to_csv(index=False).encode("utf-8")
-    st.download_button("📥 Download example data as CSV", data=csv, file_name="example_data.csv", mime="text/csv")
-
+from app.example import show_demo_section
+from app.profile import show_biomarker_profile
+from app.facts import show_random_fact
+from app.about import show_about
+from app.icons import show_icon
 
 # App config
 st.set_page_config(page_title="ClarityPredict", layout="centered")
 
-# Header med logo og info-knapp
+# Branding
 apply_custom_style()
 show_logo()
 
+# Init state
+if "show_info" not in st.session_state:
+    st.session_state["show_info"] = False
 
-# Legg til knapp til høyre
-col1, col2 = st.columns([3,1])
-with col2:
-    st.markdown(
-        """
-        <style>
-        div.stButton > button:first-child {
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 6px;
-            background-color: #f0f4f8;
-            color: #0066cc;
-        }
-        div.stButton > button:first-child:hover {
-            background-color: #e6f0ff;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-    if st.button("ℹ️ What is ClarityPredict"):
-        st.session_state.show_info = True
-        # Scroll til info-seksjonen
-        st.markdown(
-            """
-            <script>
-            window.location.href = "#info";
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-# --- Mobilvennlig testseksjon ---
-if dev_mode:
-    show_icon("search", "Test ClarityPredict instantly", size=32)
-
-    st.markdown(
-        """
-This feature is designed for mobile users and others who don't have a CSV file ready.  
-Click the button to test the app using pre-filled example data.
-"""
-    )
-
-    if st.button("🔄 Load and run example data"):
-        load_example_data()
+# --- Demo-seksjon ---
+show_demo_section()
 
 # --- Filopplasting og prediksjon ---
 df = upload_data()
 
-# Bruk eksempeldata hvis tilgjengelig
 if "example_df" in st.session_state:
     df = st.session_state.example_df
 
 if df is not None:
-    explore_data(df)  # 👈 Ny seksjon for datautforskning
+    explore_data(df)
     show_icon("chart", "Data is ready for prediction module", size=28)
     run_prediction(df)
 
-    if dev_mode:
-        # --- Informativ oversikt ---
-        st.markdown("---")
-        show_icon("chart", "Biomarker overview", size=28)
+    st.markdown("---")
+    selected_idx = st.number_input("Select a case to inspect", min_value=0, max_value=len(df) - 1, value=0)
+    patient_data = df.iloc[selected_idx]
 
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Avg CRP", f"{df['CRP'].mean():.2f} mg/L")
-        col2.metric("Avg Cystatin C", f"{df['Cystatin_C'].mean():.2f} mg/L")
-        col3.metric("Avg Creatinine", f"{df['Creatinine'].mean():.1f} µmol/L")
-        col4.metric("Avg eGFR", f"{df['eGFR'].mean():.1f} mL/min")
+    st.markdown("## 🧑‍⚕️ Patient Profile")
+    age = patient_data.get("Age", "NA")
+    sex = patient_data.get("Sex", "NA")
+    diagnosis = patient_data.get("Diagnosis", "NA")
 
-        # Histogram for CRP
-        st.markdown("---")
-        show_icon("chart", " CRP Distribution", size=28)
-        fig, ax = plt.subplots()
-        df["CRP"].hist(ax=ax, bins=20, color="skyblue", edgecolor="black")
-        ax.set_title("CRP Histogram")
-        ax.set_xlabel("CRP value (mg/L)")
-        ax.set_ylabel("Frequency")
-        st.pyplot(fig)
+    diagnosis_map = {
+        "Frisk": "Healthy",
+        "Diabetes": "Diabetes",
+        "Hypertensjon": "Hypertension",
+        "Kreft": "Cancer",
+        "Hjertesvikt": "Heart Failure"
+    }
+    diagnosis_en = diagnosis_map.get(str(diagnosis), diagnosis)
 
-        # --- Sammenlign to rader ---
-        st.markdown("---")
-        show_icon("search", "Compare two cases", size=28)
-        idx1 = st.number_input("Select first row", min_value=0, max_value=len(df) - 1, value=0)
-        idx2 = st.number_input("Select second row", min_value=0, max_value=len(df) - 1, value=1)
-        compare_profiles(df.iloc[idx1], df.iloc[idx2])
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.write(f"**Age:** {age}")
+    with col2:
+        st.write(f"**Sex:** {sex}")
+    with col3:
+        st.write(f"**Diagnosis:** {diagnosis_en}")
 
-        # --- Biomarkørprofil ---
-        st.markdown("---")
-        show_icon("profile", "Explore individual biomarker profile", size=28)
-        selected_idx = st.number_input("Select a case to inspect", min_value=0, max_value=len(df)-1, value=0)
-        show_biomarker_profile(df.iloc[selected_idx])
-        compare_profiles(df.iloc[idx1], df.iloc[idx2])
+    st.markdown(f"📋 **Summary:** {age} year old {sex.lower()} with diagnosis: {diagnosis_en}.")
+    show_biomarker_profile(patient_data)
 
-        # --- Fakta ---
-        st.markdown("---")
-        show_icon("bulb", " Did you know?", size=28)
-        show_random_fact()
+    st.markdown("## 📊 Clinical Categories of Biomarkers")
+    biomarker_groups = {
+        "🧪 Kidney Function": ["Creatinine", "eGFR", "Urea", "Cystatin_C"],
+        "🔥 Inflammation": ["CRP", "Calprotectin", "WBC"],
+        "🩸 Hematology": ["Hemoglobin"],
+        "⚖️ Metabolism": ["Albumin", "BMI"],
+        "❤️ Cardiology": ["NT_proBNP"]
+    }
+
+    selected_categories = st.multiselect(
+        "Select one or more biomarker categories",
+        list(biomarker_groups.keys()),
+        default=list(biomarker_groups.keys())[:1]
+    )
+
+    show_radar = st.checkbox("Display combined radar plot for chosen categories", value=True)
+
+    reference_ranges = {
+        "Creatinine": (50, 110),
+        "eGFR": (30, 90),
+        "Urea": (2.5, 7.5),
+        "Cystatin_C": (0.6, 1.3),
+        "CRP": (0, 10),
+        "Calprotectin": (0, 200),
+        "WBC": (4, 11),
+        "Hemoglobin": (12, 17),
+        "Albumin": (35, 50),
+        "BMI": (18.5, 30),
+        "NT_proBNP": (0, 400)
+    }
+
+    for category in selected_categories:
+        st.markdown(f"### {category}")
+        for marker in biomarker_groups[category]:
+            if marker in patient_data:
+                st.write(f"**{marker}:** {patient_data[marker]}")
+
+    if show_radar and selected_categories:
+        combined_markers = []
+        for cat in selected_categories:
+            combined_markers.extend(biomarker_groups[cat])
+
+        values, statuses = [], []
+        for m in combined_markers:
+            if m in patient_data and m in reference_ranges:
+                min_val, max_val = reference_ranges[m]
+                val = patient_data[m]
+                norm_val = (val - min_val) / (max_val - min_val)
+                norm_val = max(0, min(1, norm_val))
+                values.append(norm_val)
+
+                if 0.3 <= norm_val <= 0.7:
+                    statuses.append("Normal")
+                elif 0.2 <= norm_val < 0.3 or 0.7 < norm_val <= 0.8:
+                    statuses.append("Borderline")
+                else:
+                    statuses.append("Abnormal")
+            else:
+                values.append(0)
+                statuses.append("Missing")
+
+        if len(values) > 1:
+            n_vars = len(combined_markers)
+            angles = np.linspace(0, 2 * np.pi, n_vars, endpoint=False).tolist()
+            values_cycle = values + values[:1]
+            angles_cycle = angles + angles[:1]
+
+            fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+            ax.plot(angles_cycle, values_cycle, "o-", linewidth=2, color="navy")
+            ax.fill(angles_cycle, values_cycle, alpha=0.25, color="skyblue")
+            ax.grid(color="gray", linestyle="--", linewidth=0.5)
+            ax.set_facecolor("#f9f9f9")
+
+            cmap = plt.cm.coolwarm
+            for angle, val in zip(angles_cycle, values_cycle):
+                ax.plot(angle, val, "o", color=cmap(val), markersize=8)
+
+            ax.set_xticks(angles)
+            ax.set_xticklabels(combined_markers, rotation=30, ha="right", fontsize=10, fontweight="bold")
+            ax.set_title("Combined Radar Plot", fontsize=14, fontweight="bold")
+
+            st.pyplot(fig)
+
+            st.markdown("**Legend:**")
+            st.markdown("- 🟢 Normal")
+            st.markdown("- 🟡 Borderline")
+            st.markdown("- 🔴 Abnormal")
+            st.markdown("- ⚪ Missing")
+
+            table_data = {
+                "Biomarker": combined_markers,
+                "Value": [patient_data.get(m, "NA") for m in combined_markers],
+                "Normalized (0–1)": values,
+                "Status": statuses
+            }
+            df_table = pd.DataFrame(table_data)
+            st.markdown("### 📋 Table Overview")
+            st.dataframe(df_table, use_container_width=True)
+
+    st.markdown("---")
+    show_random_fact()
+
+# --- Info toggle med knapp til høyre ---
+st.markdown("---")
+col1, col2 = st.columns([7,3])
+with col2:
+    if not st.session_state.get("show_info", False):
+        if st.button("ℹ️ About ClarityPredict", key="show_info_btn"):
+            st.session_state["show_info"] = True
+            st.rerun()
+    else:
+        if st.button("Hide info", key="hide_info_btn"):
+            st.session_state["show_info"] = False
+            st.rerun()
 
 # --- Info-seksjon ---
 if st.session_state.get("show_info", False):
-    st.markdown("---")
-    # Sett ID/anker for scroll
-    st.markdown('<a id="info"></a>', unsafe_allow_html=True)
+    show_about()
 
-    st.header("What is ClarityPredict?")
-    st.write("""
-ClarityPredict© is a prototype for explainable biomarker prediction. 
-It combines advanced machine learning with clear, interactive visualizations to help clinicians, researchers, 
-and health-tech innovators make sense of complex patient data.
-
-Key features include:
-- **Data exploration**: Upload or generate biomarker datasets and instantly explore distributions, correlations, and summary statistics.
-- **Predictive modeling**: Run logistic regression or random forest models with transparent performance metrics (ROC, precision-recall, confusion matrix).
-- **Explainability**: Inspect individual predictions with SHAP force plots, beeswarm plots, and dependence plots to understand how biomarkers influence outcomes.
-- **Patient-level insights**: Compare biomarker profiles across patients and highlight key differences in clinical markers.
-- **Accessibility**: Designed to bridge the gap between complex algorithms and practical decision-making, making advanced analytics trustworthy and easy to use.
-
-ClarityPredict© is not a diagnostic tool, but a demonstration of how explainable AI can support 
-decision-making in healthcare and research.
-""")
-
-    st.write("👉 [Les på norsk](#norsk)")
-    st.header("Hva er ClarityPredict?")
-    st.write("""
-Jeg har valgt å kalle produktet ClarityPredict© fordi navnet uttrykker kjernen i det jeg ønsker å oppnå: klarhet 
-i komplekse data og tydelige prediksjoner som kan forklares. Clarity står for innsikt og transparens – at resultatene 
-ikke bare skal være tall, men forståelige forklaringer. Predict viser at løsningen handler om å forutsi utfall basert 
-på biomarkører. Sammen gir navnet et løfte om både presisjon og forklarbarhet: en prediksjon som kan stoles på fordi den 
-kan forklares.
-
-ClarityPredict© er en prototype for forklarbar biomarkørprediksjon. 
-Den kombinerer avansert maskinlæring med tydelige, interaktive visualiseringer for å hjelpe klinikere, forskere 
-og helse-teknologiutviklere med å forstå komplekse pasientdata.
-
-Hovedfunksjoner:
-- **Datautforskning**: Last opp eller generer biomarkørdatasett og utforsk fordelinger, korrelasjoner og oppsummerende statistikk.
-- **Prediktiv modellering**: Kjør logistisk regresjon eller random forest-modeller med transparente ytelsesmål (ROC, precision-recall, confusion matrix).
-- **Forklarbarhet**: Undersøk individuelle prediksjoner med SHAP force plots, beeswarm plots og dependence plots for å forstå hvordan biomarkører påvirker resultatene.
-- **Pasientnivå-innsikt**: Sammenlign biomarkørprofiler mellom pasienter og fremhev viktige forskjeller i kliniske markører.
-- **Tilgjengelighet**: Bygget for å bygge bro mellom komplekse algoritmer og praktiske beslutninger, slik at avansert analyse blir pålitelig og enkel å bruke.
-
-ClarityPredict© er ikke et diagnostisk verktøy, men en demonstrasjon av hvordan forklarbar AI kan støtte 
-beslutningstaking i helsevesen og forskning.
-""")
-
-    # Reset-knapp med scroll til toppen
-    if st.button("Hide info"):
-        st.session_state.show_info = False
-        st.markdown(
-            """
-            <script>
-            window.scrollTo({top: 0, behavior: 'smooth'});
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
 # --- Footer ---
 show_footer()
-
-
