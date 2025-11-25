@@ -13,6 +13,11 @@ BACKGROUND_COLOR = "#F9F9F9"    # Lys bakgrunn
 # --- Fontvalg ---
 FONT_FAMILY = "Inter, sans-serif"
 
+# --- Versjonsnotater (kort variant) ---
+VERSION_NOTES = (
+    "Improved info toggle, fixed button placement, and added bilingual About section."
+)
+
 # --- CSS-injeksjon ---
 def apply_custom_style():
     st.markdown(f"""
@@ -66,7 +71,8 @@ def show_logo():
         """,
         unsafe_allow_html=True
     )
-    st.caption(f"🔄 Version: {date.today()} – latest update includes biomarker profile and comparison")  # ✅ Versjonsindikator
+    # ✅ Kort versjonsindikator med dato + dagens endringer
+    st.caption(f"🔄 Version: {date.today()} – {VERSION_NOTES}")
 
 # --- Stilfunksjoner ---
 def styled_header(text, level=3):
