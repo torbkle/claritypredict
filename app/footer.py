@@ -7,7 +7,7 @@ def show_footer():
         """
         <div style="text-align:center; font-size:14px; color:gray; margin-top:20px;">
             <p><strong>ClarityPredict©</strong> – Prototype for explainable biomarker prediction</p>
-            <p>Developed by <strong>Torbjørn Kleiven</strong>, MSc AI/ML</p>
+            <p>Developed by <strong>Torbjørn Kleiven</strong>, Bachelor of Science in Computer Science, specialization in Machine Learning</p>
             <p>
                 Moss / Oslo, Norway <br>
                 <a href="mailto:tk@infera.no">tk@infera.no</a> | 
